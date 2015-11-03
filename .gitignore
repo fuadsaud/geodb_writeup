@@ -1,0 +1,8 @@
+*.pdf
+*.bbl
+*.blg
+*.dvi
+*.log
+*.aux
+*.swp
+_minted-geodb
