@@ -14,7 +14,7 @@
 \usepackage{pdftexcmds}
 \usepackage{minted}
 
-\setminted{frame=lines}
+%\setminted{frame=lines}
 
 \sloppy
 
@@ -108,85 +108,60 @@ o PostGIS habilitado da seguinte forma:
 \end{minted}
 
 \section{Indexação}
+Um banco de dados geospacial somente é possível se existir algum tipo de indexação
+espacial, pois sem ela não há forma de o banco realizar consultas em tempo real.
+Sem este tipo de indexação um join entre duas tabelas com 10.000 registros cada,
+executaria um total de 100.000.000 comparações, no entanto com indexação espacial
+nas duas tabelas o número de comparações pode cair para aproximadamente 20.000.
 
-Section titles must be in boldface, 13pt, flush left. There should be an extra
-12 pt of space before each title. Section numbering is optional. The first
-paragraph of each section should not be indented, while the first lines of
-subsequent paragraphs should be indented by 1.27 cm.
-R-tree, Quadtree, grid-based indexes.
+O postgis possui, além da indexação tradicional do PostgreSQL, um sistema de
+indexação espacial chamado GiST (Generalized Search Tree) \cite{gist:96} sobre uma
+árvore R-Tree, que pode ser criado da seguinte forma:
+\begin{minted}{sql}
+  CREATE INDEX [indexname]
+    ON [tablename]
+    USING GIST ( [geometryfield] );
+\end{minted}
 
-\subsection{Subsections}
+Por padrão será criado um índice de 2 dimensões, para criar um índice de N dimensões:
+\begin{minted}{sql}
+  CREATE INDEX [indexname]
+    ON [tablename]
+    USING GIST ([geometryfield] gist_geometry_ops_nd);
+\end{minted}
 
-The subsection titles must be in boldface, 12pt, flush left.
-
-\section{Figures and Captions}\label{sec:figs}
-
-
-Figure and table captions should be centered if less than one line
-(Figure~\ref{fig:exampleFig1}), otherwise justified and indented by 0.8cm on
-both margins, as shown in Figure~\ref{fig:exampleFig2}. The caption font must
-be Helvetica, 10 point, boldface, with 6 points of space before and after each
-caption.
+\subsection{Funcionamento}
+O GiST funciona com um sistema de \textit{bounding boxes} (Figura~\ref{fig:indexes_bbox}),
+ou seja, para cada polígono armazenado é criada o menor retângulo possível que o
+compreenda, estes novos polígonos menos complexos são armazenados na estrutura hierarquica
+de indexação.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=.5\textwidth]{fig1.jpg}
-  \caption{A typical figure}
-  \label{fig:exampleFig1}
+  \includegraphics[width=1\textwidth]{indexes_bbox.png}
+  \caption{Bounding boxes}
+  \label{fig:indexes_bbox}
 \end{figure}
 
+Então para realizar uma busca de polígonos que se intersecionam, primeiro é realizada a
+verificação de quais retângulos se intersecionam, e somente é realizado o cálculo de
+intersecção dos polígonos complexos nas intersecções dos retêngulos, desta forma temos uma
+menor complexidade para calcular as intersecções entres os polígonos.
+
+\subsection{Esturura hierárquica - GiST + R-Tree}
+O postgis armazena os retângulos em uma árvore (Figura~\ref{fig:indexes_rtree}) de N
+níveis de acordo com a densidade de polígonos, afim de reduzir a complexidade de busca.
+Desta form ele cria novos retângulos lógicos, de forma automática, que compreendem
+retângulos referentes a polígonos complexos, de tal forma a criar uma estrutura hierárquica
+de retângulos, onde os retângulos referentes a polígonos complexos ficam armazenados nas
+folhas e os retângulos lógicos no restante da árvore. Desta forma o caminhamento na árvore
+em busca de polígonos complexos é mínimo.
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=.3\textwidth]{fig2.jpg}
-  \caption{This figure is an example of a figure caption taking more than one
-  line and justified considering margins mentioned in Section~\ref{sec:figs}.}
-  \label{fig:exampleFig2}
+  \includegraphics[width=.5\textwidth]{indexes_rtree.png}
+  \caption{Indexação de retângulos R-Tree}
+  \label{fig:indexes_rtree}
 \end{figure}
-
-In tables, try to avoid the use of colored or shaded backgrounds, and avoid
-thick, doubled, or unnecessary framing lines. When reporting empirical data,
-do not use more decimal digits than warranted by their precision and
-reproducibility. Table caption must be placed before the table (see Table 1)
-and the font used must also be Helvetica, 10 point, boldface, with 6 points of
-space before and after each caption.
-
-\begin{table}[ht]
-  \centering
-  \caption{Variables to be considered on the evaluation of interaction
-  techniques}
-  \label{tab:exTable1}
-  \smallskip
-  \begin{tabular}{|l|c|c|}
-    \hline
-    & Value 1 & Value 2\\[0.5ex]
-    \hline
-    &&\\[-2ex]
-    Case 1 & 1.0 $\pm$ 0.1 & 1.75$\times$10$^{-5}$ $\pm$ 5$\times$10$^{-7}$\\[0.5ex]
-    \hline
-    &&\\[-2ex]
-    Case 2 & 0.003(1) & 100.0\\[0.5ex]
-    \hline
-  \end{tabular}
-\end{table}
-
-\section{Images}
-
-All images and illustrations should be in black-and-white, or gray tones,
-excepting for the papers that will be electronically available (on CD-ROMs,
-internet, etc.). The image resolution on paper should be about 600 dpi for
-black-and-white images, and 150-300 dpi for grayscale images.  Do not include
-images with excessive resolution, as they may take hours to print, without any
-visible difference in the result.
-
-\section{References}
-
-Bibliographic references must be unambiguous and uniform.  We recommend giving
-the author names references in brackets, e.g. \cite{knuth:84},
-\cite{boulic:91}, and \cite{smith:99}.
-
-The references must be listed using 12 point font size, with 6 points of space
-before each reference. The first line of each reference should not be
-indented, while the subsequent should be indented by 0.5 cm.
 
 \bibliographystyle{sbc}
 \bibliography{geodb}

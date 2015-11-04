@@ -2,7 +2,5 @@
 \BOOKMARK [1][-]{section.2}{PostGIS}{}% 2
 \BOOKMARK [2][-]{subsection.2.1}{Configura\347\343o}{section.2}% 3
 \BOOKMARK [1][-]{section.3}{Indexa\347\343o}{}% 4
-\BOOKMARK [2][-]{subsection.3.1}{Subsections}{section.3}% 5
-\BOOKMARK [1][-]{section.4}{Figures and Captions}{}% 6
-\BOOKMARK [1][-]{section.5}{Images}{}% 7
-\BOOKMARK [1][-]{section.6}{References}{}% 8
+\BOOKMARK [2][-]{subsection.3.1}{Funcionamento}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.2}{Esturura hier\341rquica - GiST + R-Tree}{section.3}% 6
