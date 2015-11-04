@@ -20,10 +20,10 @@
 
 \title{Bancos de Dados Geográficos}
 
-\author{Fuad Saud\inst{1}, Luiz Felipe Cunha\inst{1}, Ramon Saraiva\inst{1}}
+\author{Fuad Saud\inst{1}, Luiz Felipe Cunha\inst{1}, Marcel Mossmann \inst{1} Ramon Saraiva\inst{1}}
 
 \address{Universidade do Vale do Rio dos Sinos
-  \email{\{fuadfsaud,felipe.silvacunha\}@gmail.com}
+  \email{\{fuadfsaud,felipe.silvacunha\,marcelmossmann,ramonsaraiva}@gmail.com}
 }
 
 \begin{document}
@@ -107,6 +107,56 @@ o PostGIS habilitado da seguinte forma:
   pgsql postgis_enabled_database < output.sql
 \end{minted}
 
+Seguem algums exemplos de funções geográficas que são implementadas pelo
+PostGIS:
+
+\begin{minted}{sql}
+boolean ST_Crosses(geometry g1, geometry g2)
+-- Retorna true caso as geometrias tenham alguns pontos internos
+-- em comum, mas não todos.
+
+geometry ST_Difference(geometry g1, geometry g2)
+-- Retorna a diferença entre a geometria 1g em relação a g2,
+-- isto é, os pontos de g1 que não fazem partde de g2.
+
+float ST_Distance(geometry g1, geometry g2)
+-- Retorna a distância mínima, em um plano 2D, entre as geometrias.
+
+boolean ST_Contains(geometry g1, geometry g2)
+-- Retorna true se, e somente se, g2 não possuir nenhum
+-- ponto que esteja no exterior de g1 e pelo menos um
+-- ponto no interior de g1.
+
+boolean ST_Covers(geometry g1, geometry g2)
+-- Retorna true se nenhum ponto de g2 estiver fora de g1.
+
+boolean ST_Equals(geometry g1, geometry g2)
+-- Retorna true caso ambos parâmetros representem a mesma
+-- geometria, ignorando a direção.
+
+geometry ST_Intersection(geometry g1, geometry g2)
+-- Retorna uma geometria contendo os pontos em comum entre g1 e g2.
+
+boolean ST_Intersects(geometry g1, geometry g2)
+-- Retorna true caso g1 e g2 compartilhem qualquer porção de espaço.
+
+boolean ST_IsValid(geometry g)
+-- Retorna true caso a geometria seja bem formada. Caso seja
+-- inválida, o PostgreSQL notice irá disponibilizar detalhes da razão.
+
+float ST_Length(geometry a_2dlinestring)
+-- Retorna  o comprimento 2D da geometria, caso seja uma LineString ou
+-- MultiLineString.
+
+boolean ST_Overlaps(geometry g1, geometry g2)
+-- Retorna true caso as geometrias dividam espaço, sejam de mesma
+-- dimensão, porém não sejam completamente contidas pela outra.
+
+float ST_Perimeter(geometry g1)
+-- Retorna a medida do comprimento dos limites de um ST_Surface
+-- ou ST_MultiSurface.
+\end{minted}
+
 \section{Indexação}
 Um banco de dados geospacial somente é possível se existir algum tipo de indexação
 espacial, pois sem ela não há forma de o banco realizar consultas em tempo real.
@@ -115,7 +165,7 @@ executaria um total de 100.000.000 comparações, no entanto com indexação esp
 nas duas tabelas o número de comparações pode cair para aproximadamente 20.000.
 
 O postgis possui, além da indexação tradicional do PostgreSQL, um sistema de
-indexação espacial chamado GiST (Generalized Search Tree) \cite{gist:96} sobre uma
+indexação espacial chamado GiST (Generalized Search Tree) sobre uma
 árvore R-Tree, que pode ser criado da seguinte forma:
 \begin{minted}{sql}
   CREATE INDEX [indexname]
@@ -156,14 +206,31 @@ retângulos referentes a polígonos complexos, de tal forma a criar uma estrutur
 de retângulos, onde os retângulos referentes a polígonos complexos ficam armazenados nas
 folhas e os retângulos lógicos no restante da árvore. Desta forma o caminhamento na árvore
 em busca de polígonos complexos é mínimo.
+
 \begin{figure}[ht]
   \centering
   \includegraphics[width=.5\textwidth]{indexes_rtree.png}
   \caption{Indexação de retângulos R-Tree}
   \label{fig:indexes_rtree}
 \end{figure}
+\section{Implementação}
+
+Para exemplificar os conceitos descritos foi realizada a implmentação de uma
+aplicação Web que pode ser acessada na seguinte URL:
+\url{http://ramonsaraiva.xyz}. O código da aplicação está disponível no
+seguinte endereço: \url{https://github.com/ramonsaraiva/unigis}.
+
+A implementação é escrita em Python e JavaScript e utiliza o ORM GeoAlchemy.
+
+\section{Conclusão}
+
+O PostGIS é uma solução robusta e moderna para armazenamento, busca e indexação
+de dados geoespaciais, que por estar aliado a confiabilidade, extensibilidade e
+ao ecossistema do PostgreSQL se torna um produto extremamente popular e
+acessível para uso em aplicações em geral.
 
 \bibliographystyle{sbc}
 \bibliography{geodb}
+\nocite{*}
 
 \end{document}
